@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <style>
+            body {
+                padding-top: 60px;
+                padding-bottom: 40px;
+            }
+        </style>
+        <link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="css/main.css">
+
+        <script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+    </head>
+    <body>
+        <!--[if lt IE 7]>
+            <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+        <![endif]-->
+
+        <!-- This code is taken from http://twitter.github.com/bootstrap/examples/hero.html -->
+
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </a>
+                    <a class="brand" href="#">Logger</a>
+                    <div class="nav-collapse collapse">
+                        <ul class="nav">
+                            
+                        </ul>
+                        <form class="navbar-form pull-right">
+
+                        </form>
+                    </div><!--/.nav-collapse -->
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+
+
+            <div id="log">
+                <div class="row">
+                    <div class="span2">
+                        &nbsp;
+                    </div>
+                    <div class="span8">
+                        <h2>Loading</h2>
+                        <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+                        <p><a class="btn" href="#">View details &raquo;</a></p>
+                   </div>
+                    <div class="span2">
+                        &nbsp;
+                    </div>
+                </div>
+    
+                <hr>
+            
+            </div>
+
+            <footer>
+                <p>&copy; Company 2012</p>
+            </footer>
+
+        </div> <!-- /container -->
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.2/underscore-min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.8.3.min.js"><\/script>')</script>
+
+        <script src="js/vendor/bootstrap.min.js"></script>
+
+        <script src="js/main.js"></script>
+
+        <script>
+            var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
+            (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+            g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+            s.parentNode.insertBefore(g,s)}(document,'script'));
+        </script>
+        
+        <script type="text/javascript">
+            (function($, exports, undefined){
+                
+                function Log(logData){
+                    var self = this;
+                    
+                    this.log = logData;
+                    this.uniqueEvents = _.uniq(this.log, false, function(i) {
+                        var j = _.clone(i);
+                        delete j.date;
+                        return JSON.stringify(j);
+                    });
+                    
+                    var collectEventDatesAndCounts = function(){
+                        _.each(self.uniqueEvents, function(ue){
+                            var k = _.clone(ue);
+                            delete k.date;
+                            matches = _.filter(self.log, function(e){
+                               var j = _.clone(e);
+                               delete j.date;
+                               return JSON.stringify(k) === JSON.stringify(j);
+                            });
+                            ue.dates = _.last(_.pluck(matches, 'date'), 3);
+                            ue.count = matches.length;
+                        });
+                    };
+                    
+                    collectEventDatesAndCounts();
+                }
+                
+                $('document').ready(function() {
+                    $.getJSON('log.php', function(logData) {
+                        var log = new Log(logData), output = '',
+                        template = $('#log_item').html();
+                        _.each(log.uniqueEvents, function(e){
+                            output += _.template(template, e);
+                        });
+                        $('#log').html(output);
+                        console.log(log);
+                    });
+                    
+                    $('#log').on('click', '.show_trace', function() {
+                        $(this)
+                            .text('Hide trace')
+                            .removeClass('show_trace')
+                            .addClass('hide_trace')
+                            .parent().parent().find('.trace').slideDown().removeClass('hidden');
+                    });
+                    
+                    $('#log').on('click', '.hide_trace', function() {
+                        $(this)
+                            .text('View trace')
+                            .removeClass('hide_trace')
+                            .addClass('show_trace')
+                            .parent().parent().find('.trace').addClass('hidden').hide();
+                    });
+                });
+            }(jQuery, window));
+        </script>
+        
+        <script type="text/template" id="log_item">
+            <div class="row">
+                    <div class="span2">
+                        &nbsp;
+                    </div>
+                    <div class="span8">
+                        <h2><%= count %>: <%= message %></h2>
+                        <p><%= dates.join(', ') %></p>
+                        <p><%= file %></p>
+                        <p><%= line %></p>
+                        <p><a class="btn show_trace" href="#">View trace</a></p>
+                        <div class="trace hidden">
+                            <% _.each(trace, function(i) { %>
+                                <p>
+                                    <% if (i['class']) { %>
+                                        <%= i['class'] %>::<% } %>
+                                        <%= i['function'] %>(<%= JSON.stringify(i.args) %>)
+                                </p>
+                                <p><%= i.file %></p>
+                                <p><%= i.line %></p>
+                                <hr />
+                            <% }); %>
+                        </div>
+                   </div>
+                    <div class="span2">
+                        &nbsp;
+                    </div>
+                </div>
+    
+                <hr>
+            </div>
+        </script>
+    </body>
+</html>
