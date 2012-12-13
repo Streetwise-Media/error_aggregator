@@ -97,23 +97,27 @@
                 function Log(logData){
                     var self = this;
                     
+                    var simpleEvent = function(e){
+                        var i = _.clone(e);
+                        delete i.date;
+                        delete i.referer;
+                        return i;
+                    }
+                    
                     this.log = logData;
                     this.uniqueEvents = _.uniq(this.log, false, function(i) {
-                        var j = _.clone(i);
-                        delete j.date;
-                        return JSON.stringify(j);
+                        return JSON.stringify(simpleEvent(i));
                     });
                     
                     var collectEventDatesAndCounts = function(){
                         _.each(self.uniqueEvents, function(ue){
-                            var k = _.clone(ue);
-                            delete k.date;
+                            var simpleUe = simpleEvent(ue);
                             matches = _.filter(self.log, function(e){
-                               var j = _.clone(e);
-                               delete j.date;
-                               return JSON.stringify(k) === JSON.stringify(j);
+                               return JSON.stringify(simpleEvent(e)) === JSON.stringify(simpleUe);
                             });
                             ue.dates = _.last(_.pluck(matches, 'date'), 3);
+                            ue.referers = _.reject(_.last(_.uniq(_.pluck(matches, 'referer')), 3),
+                                function(r) { return !r || (r && typeof r.trim === 'function' && r.trim() === ''); });
                             ue.count = matches.length;
                         });
                     };
@@ -159,6 +163,7 @@
                     <div class="span8">
                         <h2><%= message %> - <%= count %>x</h2>
                         <p><%= dates.join(', ') %></p>
+                        <p><%= referers.join(', ') %></p>
                         <p><%= file %></p>
                         <p><%= line %></p>
                         <p><a class="btn show_trace" href="#">View trace</a></p>

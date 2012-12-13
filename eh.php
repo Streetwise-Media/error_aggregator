@@ -8,6 +8,9 @@ class ErrorHandler {
 	{
 		return array(
 			'date' => date('m/d/Y h:i:s a'),
+			'referer' => (strtolower($_SERVER['HTTPS']) === 'on')
+				? "https://".$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI']
+				: "http://".$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'],
 			'type' => $type,
 			'level' => $level,
 			'message' => $message,
